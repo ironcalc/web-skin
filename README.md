@@ -1,3 +1,21 @@
-# A React frontend for IronCalc
+# IronCalc Web App
 
-Work in progress :)
+## Build
+
+```bash
+npm install
+```
+
+## Local development
+
+```bash
+npm run dev
+```
+
+# Deploy
+
+```bash
+npm install
+npm run build
+```
+
