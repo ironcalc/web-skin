@@ -1,35 +1,43 @@
-export interface SelectedCell {
-  sheet: number;
+export interface Cell {
   row: number;
   column: number;
 }
 
-export interface SelectedArea {
-  sheet: number;
+export interface Area {
   rowStart: number;
   rowEnd: number;
   columnStart: number;
   columnEnd: number;
 }
 
+interface Scroll {
+  left: number;
+  top: number;
+}
+
 export class WorkbookState {
   selectedSheet: number;
-  selectedCell: SelectedCell;
-  selectedArea: SelectedArea;
+  selectedCell: Cell;
+  selectedArea: Area;
+  scroll: Scroll;
+  extendToArea: Area | null;
 
   constructor() {
-    console.log('constructor')
     const row = 1;
     const column = 1;
     const sheet = 0;
     this.selectedSheet = sheet;
-    this.selectedCell = { sheet, row, column };
+    this.selectedCell = { row, column };
     this.selectedArea = {
-      sheet,
       rowStart: row,
       rowEnd: row,
       columnStart: column,
       columnEnd: column,
+    };
+    this.extendToArea = null;
+    this.scroll = {
+      left: 0,
+      top: 0,
     };
   }
 
@@ -41,32 +49,50 @@ export class WorkbookState {
     this.selectedSheet = sheet;
   }
 
-  getSelectedCell(): SelectedCell {
+  getSelectedCell(): Cell {
     return this.selectedCell;
   }
 
-  setSelectedCell(cell: SelectedCell): void {
+  setSelectedCell(cell: Cell): void {
     this.selectedCell = cell;
   }
 
-  getSelectedArea(): SelectedArea {
+  getSelectedArea(): Area {
     return this.selectedArea;
   }
 
-  setSelectedArea(area: SelectedArea): void {
+  setSelectedArea(area: Area): void {
     this.selectedArea = area;
   }
 
-  selectCell(cell: {row: number, column:number}): void {
-    const sheet = this.selectedSheet;
-    const {row, column} = cell;
+  selectCell(cell: { row: number; column: number }): void {
+    const { row, column } = cell;
     this.selectedArea = {
-      sheet,
       rowStart: row,
       rowEnd: row,
       columnStart: column,
-      columnEnd: column
+      columnEnd: column,
     };
-    this.selectedCell = {sheet, row, column};
+    this.selectedCell = { row, column };
+  }
+
+  getScroll(): Scroll {
+    return this.scroll;
+  }
+
+  setScroll(scroll: Scroll): void {
+    this.scroll = scroll;
+  }
+
+  getExtendToArea(): Area | null {
+    return this.extendToArea;
+  }
+  
+  clearExtendToArea(): void {
+    this.extendToArea = null;
+  }
+
+  setExtendToArea(area: Area): void {
+    this.extendToArea = area;
   }
 }

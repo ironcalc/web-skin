@@ -14,7 +14,7 @@ function Worksheet(props: { model: Model; workbookState: WorkbookState }) {
   const canvasElement = useRef<HTMLCanvasElement>(null);
 
   const worksheetElement = useRef<HTMLDivElement>(null);
-  // const scrollElement = useRef<HTMLDivElement>(null);
+  const scrollElement = useRef<HTMLDivElement>(null);
   // const rootElement = useRef<HTMLDivElement>(null);
   const spacerElement = useRef<HTMLDivElement>(null);
   const cellOutline = useRef<HTMLDivElement>(null);
@@ -92,23 +92,88 @@ function Worksheet(props: { model: Model; workbookState: WorkbookState }) {
     onPointerUp,
     // onContextMenu,
   } = usePointer({
-    onAreaSelected: () => {
-      console.log('onAreaSelected');
-    }, // editorActions.onAreaSelected,
-    onPointerDownAtCell: (cell: Cell, event: React.MouseEvent) => {
+    onCellSelected: (cell: Cell, event: React.MouseEvent) => {
       console.log('onPointerDownAtCell');
       event.preventDefault();
       event.stopPropagation();
       workbookState.selectCell(cell);
       worksheetCanvas.current?.renderSheet();
     },
-    onPointerMoveToCell: () => {
+    onAreaSelecting: (cell: Cell) => {
+      const canvas = worksheetCanvas.current;
+      if (!canvas) {
+        return;
+      }
+      const { row, column } = cell;
+      // const { width, height } = worksheet.getBoundingClientRect();
+      // const [x, y] = canvas.getCoordinatesByCell(row, column);
+      // const [x1, y1] = canvas.getCoordinatesByCell(row + 1, column + 1);
+      // const { left: canvasLeft, top: canvasTop } = canvas.getScrollPosition();
+      // // let border = Border.Right;
+      // // let { left, top } = state.scrollPosition;
+      // // if (x < headerColumnWidth) {
+      // //   border = Border.Left;
+      // //   left = canvasLeft - headerColumnWidth + x;
+      // // } else if (x1 > width - 20) {
+      // //   border = Border.Right;
+      // // }
+      // // if (y < headerRowHeight) {
+      // //   border = Border.Top;
+      // //   top = canvasTop - headerRowHeight + y;
+      // // } else if (y1 > height - 20) {
+      // //   border = Border.Bottom;
+      // // }
+      const selectedCell = workbookState.getSelectedCell();
+      const area = {
+        rowStart: Math.min(selectedCell.row, row),
+        rowEnd: Math.max(selectedCell.row, row),
+        columnStart: Math.min(selectedCell.column, column),
+        columnEnd: Math.max(selectedCell.column, column),
+      };
+      workbookState.setSelectedArea(area);
+      canvas.renderSheet();
+      // // If there are frozen rows or columns snap to origin if we cross boundaries
+      // const frozenRows = canvas.workbook.getFrozenRowsCount();
+      // const frozenColumns = canvas.workbook.getFrozenColumnsCount();
+      // if (area.rowStart <= frozenRows && area.rowEnd > frozenRows) {
+      //   top = 0;
+      // }
+      // if (area.columnStart <= frozenColumns && area.columnEnd > frozenColumns) {
+      //   left = 0;
+      // }
       console.log('onPointerMoveToCell');
     }, //  editorActions.onPointerMoveToCell,
-    onExtendToCell: () => {
+    onExtendToCell: (cell) => {
       console.log('onExtendToCell');
+      const canvas = worksheetCanvas.current;
+      if (!canvas) {
+        return;
+      }
+      const { row, column } = cell;
+      const selectedCell = workbookState.getSelectedCell();
+      const area = {
+        rowStart: Math.min(selectedCell.row, row),
+        rowEnd: Math.max(selectedCell.row, row),
+        columnStart: Math.min(selectedCell.column, column),
+        columnEnd: Math.max(selectedCell.column, column),
+      };
+      workbookState.setExtendToArea(area);
+      canvas.renderSheet();
     }, //  editorActions.onExtendToCell,
     onExtendToEnd: () => {
+      const canvas = worksheetCanvas.current;
+      if (!canvas) {
+        return;
+      }
+      const sheet = workbookState.getSelectedSheet();
+      const initialArea = workbookState.getSelectedArea();
+      const extendedArea = workbookState.getExtendToArea();
+      if (!extendedArea) {
+        return;
+      }
+      model.extendTo(sheet, initialArea, extendedArea);
+      workbookState.clearExtendToArea();
+      canvas.renderSheet();
       console.log('onExtendToEnd');
     }, // editorActions.onExtendToEnd,
     canvasElement,
@@ -121,20 +186,21 @@ function Worksheet(props: { model: Model; workbookState: WorkbookState }) {
   });
 
   const onScroll = (): void => {
-    if (!worksheetElement.current || !worksheetCanvas.current) {
+    if (!scrollElement.current || !worksheetCanvas.current) {
       return;
     }
-    const left = worksheetElement.current.scrollLeft;
-    const top = worksheetElement.current.scrollTop;
+    const left = scrollElement.current.scrollLeft;
+    const top = scrollElement.current.scrollTop;
 
     worksheetCanvas.current.setScrollPosition({ left, top });
     worksheetCanvas.current.renderSheet();
   };
 
   return (
-    <Wrapper ref={worksheetElement} onScroll={onScroll}>
+    <Wrapper ref={scrollElement} onScroll={onScroll}>
       <Spacer ref={spacerElement} />
       <SheetContainer
+        ref={worksheetElement}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}

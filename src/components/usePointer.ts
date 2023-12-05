@@ -1,6 +1,6 @@
 import { useCallback, RefObject, PointerEvent, useRef } from 'react';
 import WorksheetCanvas, { headerColumnWidth, headerRowHeight } from './WorksheetCanvas/worksheetCanvas';
-import { Area, Border, Cell } from './WorksheetCanvas/util';
+import { Cell } from './WorksheetCanvas/util';
 
 interface PointerSettings {
   canvasElement: RefObject<HTMLCanvasElement>;
@@ -8,9 +8,8 @@ interface PointerSettings {
   worksheetElement: RefObject<HTMLDivElement>;
   // rowContextMenuAnchorElement: RefObject<HTMLDivElement>;
   // columnContextMenuAnchorElement: RefObject<HTMLDivElement>;
-  onPointerDownAtCell: (cell: Cell, event: React.MouseEvent) => void;
-  onPointerMoveToCell: (cell: Cell) => void;
-  onAreaSelected: (area: Area, border: Border) => void;
+  onCellSelected: (cell: Cell, event: React.MouseEvent) => void;
+  onAreaSelecting: (cell: Cell) => void;
   onExtendToCell: (cell: Cell) => void;
   onExtendToEnd: () => void;
   // onRowContextMenu: (row: number) => void;
@@ -99,6 +98,8 @@ const usePointer = (options: PointerSettings): PointerEvents => {
         return;
       }
 
+      console.log('selecting: ', isSelecting.current, isExtending.current)
+
       if (isSelecting.current) {
         const { canvasElement, worksheetCanvas } = options;
         const canvas = canvasElement.current;
@@ -114,7 +115,7 @@ const usePointer = (options: PointerSettings): PointerEvents => {
         y -= canvasRect.y;
         const cell = worksheet.getCellByCoordinates(x, y);
         if (cell) {
-          options.onPointerMoveToCell(cell);
+          options.onAreaSelecting(cell);
         }
       } else if (isExtending.current) {
         const { canvasElement, worksheetCanvas } = options;
@@ -141,12 +142,15 @@ const usePointer = (options: PointerSettings): PointerEvents => {
 
   const onPointerUp = useCallback(
     (event: PointerEvent): void => {
+      console.log('pointerup');
       if (isSelecting.current) {
         const { worksheetElement } = options;
         isSelecting.current = false;
+        console.log('isSelecting', worksheetElement.current)
         worksheetElement.current?.releasePointerCapture(event.pointerId);
       } else if (isExtending.current) {
         const { worksheetElement } = options;
+        console.log('isExtending', worksheetElement.current)
         isExtending.current = false;
         worksheetElement.current?.releasePointerCapture(event.pointerId);
         options.onExtendToEnd();
@@ -188,8 +192,9 @@ const usePointer = (options: PointerSettings): PointerEvents => {
         return;
       }
       const cell = worksheet.getCellByCoordinates(x, y);
+      console.log('yup', cell, worksheetWrapper);
       if (cell) {
-        options.onPointerDownAtCell(cell, event);
+        options.onCellSelected(cell, event);
         isSelecting.current = true;
         worksheetWrapper.setPointerCapture(event.pointerId);
       }
@@ -204,6 +209,7 @@ const usePointer = (options: PointerSettings): PointerEvents => {
       if (!worksheetWrapper) {
         return;
       }
+      console.log('onphandle');
       isExtending.current = true;
       worksheetWrapper.setPointerCapture(event.pointerId);
       event.stopPropagation();

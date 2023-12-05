@@ -38,7 +38,6 @@ interface DeleteCellDiff {
   column: number;
   row: number;
   oldValue: CellValue;
-  oldStyle: number;
 }
 
 interface RemoveCellDiff {

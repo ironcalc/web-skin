@@ -13,7 +13,6 @@ import {
   lastRow,
   outlineColor,
 } from "./constants";
-import { ScrollPosition, SheetState } from "./types";
 import { columnNameFromNumber } from "./util";
 
 export interface CanvasSettings {
@@ -74,8 +73,6 @@ export default class WorksheetCanvas {
 
   extendToOutline: HTMLDivElement;
 
-  state: SheetState;
-
   workbookState: WorkbookState;
 
   model: Model;
@@ -98,12 +95,6 @@ export default class WorksheetCanvas {
     this.width = options.width;
     this.height = options.height;
     this.ctx = this.setContext();
-    this.state = {
-      scrollPosition: {
-        left: 0,
-        top: 0,
-      },
-    };
     this.workbookState = options.workbookState;
 
     this.cellOutline = options.elements.cellOutline;
@@ -120,7 +111,7 @@ export default class WorksheetCanvas {
     this.resetHeaders();
   }
 
-  setScrollPosition(scrollPosition: ScrollPosition): void {
+  setScrollPosition(scrollPosition: {left: number; top: number;}): void {
     // We ony scroll whole rows and whole columns
     // left, top are maximized with constraints:
     //    1. left <= scrollPosition.left
@@ -128,11 +119,7 @@ export default class WorksheetCanvas {
     //    3. (left, top) are the absolute coordinates of a cell
     const { left } = this.getBoundedColumn(scrollPosition.left);
     const { top } = this.getBoundedRow(scrollPosition.top);
-    this.state.scrollPosition = { left, top };
-  }
-
-  getScrollPosition(): ScrollPosition {
-    return this.state.scrollPosition;
+    this.workbookState.setScroll({ left, top });
   }
 
   resetHeaders(): void {
@@ -227,13 +214,14 @@ export default class WorksheetCanvas {
     const frozenColumns = this.model.getFrozenColumnsCount(
       this.workbookState.getSelectedSheet()
     );
+    const scroll = this.workbookState.getScroll();
     let rowTop = frozenRows + 1;
     let rowBottom = frozenRows + 1;
     let columnLeft = frozenColumns + 1;
     let columnRight = frozenColumns + 1;
     const frozenColumnsWidth = this.getFrozenColumnsWidth();
     const frozenRowsHeight = this.getFrozenRowsHeight();
-    let y = headerRowHeight + frozenRowsHeight - this.state.scrollPosition.top;
+    let y = headerRowHeight + frozenRowsHeight - scroll.top;
     for (let row = frozenRows + 1; row <= lastRow; row += 1) {
       const rowHeight = this.model.getRowHeight(
         this.workbookState.getSelectedSheet(),
@@ -251,7 +239,7 @@ export default class WorksheetCanvas {
     }
 
     let x =
-      headerColumnWidth + frozenColumnsWidth - this.state.scrollPosition.left;
+      headerColumnWidth + frozenColumnsWidth - scroll.left;
     for (let column = frozenColumns + 1; column <= lastColumn; column += 1) {
       const columnWidth = this.model.getColumnWidth(
         this.workbookState.getSelectedSheet(),
@@ -547,8 +535,6 @@ export default class WorksheetCanvas {
     });
   }
 
-  /* eslint-disable no-param-reassign */
-  // eslint-disable-next-line class-methods-use-this
   private styleColumnHeader(
     width: number,
     div: HTMLDivElement,
@@ -570,7 +556,7 @@ export default class WorksheetCanvas {
       div.classList.remove("selected");
     }
   }
-  /* eslint-enable no-param-reassign */
+
   private removeHandles(): void {
     const root = this.canvas.parentElement;
     if (root) {
@@ -722,7 +708,7 @@ export default class WorksheetCanvas {
 
   /**
    * Returns the css clip in the canvas of an html element
-   * This is used so we do not se the outlines in the row and column headers
+   * This is used so we do not see the outlines in the row and column headers
    * NB: A _different_ (better!) approach would be to have separate canvases for the headers
    * Then the sheet canvas would have it's own bounding box.
    * That's tomorrows problem.
@@ -932,6 +918,72 @@ export default class WorksheetCanvas {
       return null;
     }
     return { row, column };
+  }
+
+  private drawExtendToArea(): void {
+    const { extendToOutline } = this;
+    const extendToArea  = this.workbookState.getExtendToArea();
+    if (extendToArea === null) {
+      extendToOutline.style.visibility = 'hidden';
+      return;
+    }
+    extendToOutline.style.visibility = 'visible';
+
+    let { rowStart, rowEnd, columnStart, columnEnd } = extendToArea;
+    if (rowStart > rowEnd) {
+      [rowStart, rowEnd] = [rowEnd, rowStart];
+    }
+    if (columnStart > columnEnd) {
+      [columnStart, columnEnd] = [columnEnd, columnStart];
+    }
+
+    const [areaX, areaY] = this.getCoordinatesByCell(rowStart, columnStart);
+    const [areaWidth, areaHeight] = this.getAreaDimensions(
+      rowStart,
+      columnStart,
+      rowEnd,
+      columnEnd,
+    );
+    // const { border } = extendToArea;
+    extendToOutline.style.border = `1px dashed ${outlineColor}`;
+    extendToOutline.style.borderRadius = '3px';
+    // switch (border) {
+    //   case 'left': {
+    //     extendToOutline.style.borderLeft = 'none';
+    //     extendToOutline.style.borderTopLeftRadius = '0px';
+    //     extendToOutline.style.borderBottomLeftRadius = '0px';
+
+    //     break;
+    //   }
+    //   case 'right': {
+    //     extendToOutline.style.borderRight = 'none';
+    //     extendToOutline.style.borderTopRightRadius = '0px';
+    //     extendToOutline.style.borderBottomRightRadius = '0px';
+
+    //     break;
+    //   }
+    //   case 'top': {
+    //     extendToOutline.style.borderTop = 'none';
+    //     extendToOutline.style.borderTopRightRadius = '0px';
+    //     extendToOutline.style.borderTopLeftRadius = '0px';
+
+    //     break;
+    //   }
+    //   case 'bottom': {
+    //     extendToOutline.style.borderBottom = 'none';
+    //     extendToOutline.style.borderBottomRightRadius = '0px';
+    //     extendToOutline.style.borderBottomLeftRadius = '0px';
+
+    //     break;
+    //   }
+    //   default:
+    //     break;
+    // }
+    const padding = 1;
+    extendToOutline.style.left = `${areaX - padding}px`;
+    extendToOutline.style.top = `${areaY - padding}px`;
+    extendToOutline.style.width = `${areaWidth + 2 * padding}px`;
+    extendToOutline.style.height = `${areaHeight + 2 * padding}px`;
   }
 
   private drawCellOutline(): void {
@@ -1251,5 +1303,6 @@ export default class WorksheetCanvas {
     context.fillRect(0, 0, headerColumnWidth, headerRowHeight);
 
     this.drawCellOutline();
+    this.drawExtendToArea();
   }
 }

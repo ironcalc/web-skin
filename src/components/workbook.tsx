@@ -36,35 +36,55 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
   };
 
   const onToggleUnderline = () => {
-    model.updateStyle(workbookState.getSelectedArea(), (style) => {
+    const area = {
+      sheet: workbookState.getSelectedSheet(),
+      ...workbookState.getSelectedArea()
+    }
+    model.updateStyle(area, (style) => {
       style.font.u = !style.font.u;
     });
     setRedrawId((id) => id + 1);
   };
 
   const onToggleItalic = () => {
-    model.updateStyle(workbookState.getSelectedArea(), (style) => {
+    const area = {
+      sheet: workbookState.getSelectedSheet(),
+      ...workbookState.getSelectedArea()
+    }
+    model.updateStyle(area, (style) => {
       style.font.i = !style.font.i;
     });
     setRedrawId((id) => id + 1);
   };
 
   const onToggleBold = () => {
-    model.updateStyle(workbookState.getSelectedArea(), (style) => {
+    const area = {
+      sheet: workbookState.getSelectedSheet(),
+      ...workbookState.getSelectedArea()
+    }
+    model.updateStyle(area, (style) => {
       style.font.b = !style.font.b;
     });
     setRedrawId((id) => id + 1);
   };
 
   const onToggleStrike = () => {
-    model.updateStyle(workbookState.getSelectedArea(), (style) => {
+    const area = {
+      sheet: workbookState.getSelectedSheet(),
+      ...workbookState.getSelectedArea()
+    }
+    model.updateStyle(area, (style) => {
       style.font.strike = !style.font.strike;
     });
     setRedrawId((id) => id + 1);
   };
 
   const onToggleAlignLeft = () => {
-    model.updateStyle(workbookState.getSelectedArea(), (style) => {
+    const area = {
+      sheet: workbookState.getSelectedSheet(),
+      ...workbookState.getSelectedArea()
+    }
+    model.updateStyle(area, (style) => {
       if (!style.alignment) {
         style.alignment = {
           horizontal: "left",
@@ -83,7 +103,11 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
   };
 
   const onToggleAlignCenter = () => {
-    model.updateStyle(workbookState.getSelectedArea(), (style) => {
+    const area = {
+      sheet: workbookState.getSelectedSheet(),
+      ...workbookState.getSelectedArea()
+    }
+    model.updateStyle(area, (style) => {
       if (!style.alignment) {
         style.alignment = {
           horizontal: "center",
@@ -102,7 +126,11 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
   };
 
   const onToggleAlignRight = () => {
-    model.updateStyle(workbookState.getSelectedArea(), (style) => {
+    const area = {
+      sheet: workbookState.getSelectedSheet(),
+      ...workbookState.getSelectedArea()
+    }
+    model.updateStyle(area, (style) => {
       if (!style.alignment) {
         style.alignment = {
           horizontal: "right",

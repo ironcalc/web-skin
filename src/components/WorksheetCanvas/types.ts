@@ -21,12 +21,3 @@ interface AreaWithBorderInterface extends Area {
 
 export type AreaWithBorder = AreaWithBorderInterface | null;
 
-export interface ScrollPosition {
-  left: number;
-  top: number;
-}
-
-export interface SheetState {
-  scrollPosition: ScrollPosition;
-  // extendToArea: AreaWithBorder;
-}
