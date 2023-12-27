@@ -1,12 +1,14 @@
 import Model from "../model";
 
 function setUpModel(): Model {
-  const model = new Model(undefined);
+  const model = Model.new("en", "Europe/Berlin", () => {});
   // Adds two extra sheets
   model.addSheet();
   model.addSheet();
 
   // first sheet (index = 0)
+  model.setUserInput(0, 1, 1, "23");
+  model.setUserInput(0, 1, 2, "=A1*3");
   model.setUserInput(0, 4, 2, "Calculation!");
   model.setUserInput(0, 17, 1, "25");
 
@@ -16,6 +18,7 @@ function setUpModel(): Model {
   model.setFrozenRows(2, 3);
   model.setFrozenColumns(2, 4);
 
+  model.evaluate();
   model.deleteHistory();
 
   return model;
@@ -31,7 +34,7 @@ describe("Model tests", () => {
     expect(model.getFrozenColumnsCount(2)).toBe(4);
   });
 
-  test('Row height', () => {
+  test("Row height", () => {
     const model = setUpModel();
     expect(model.getRowHeight(0, 3)).toBe(21);
 
@@ -48,7 +51,7 @@ describe("Model tests", () => {
     expect(model.getRowHeight(0, 3)).toBe(320);
   });
 
-  test('Basic API', () => {
+  test("Basic API", () => {
     const model = setUpModel();
     expect(model.canUndo()).toEqual(false);
     expect(model.canRedo()).toEqual(false);
@@ -73,13 +76,13 @@ describe("Model tests", () => {
     // Value is 69 in B1 and formula =A1*3
     expect(model.getCellValue(0, 1, 1)).toBe(23);
     expect(model.getCellValue(0, 1, 2)).toBe(69);
-    expect(model.getCellContent(0, 1, 2)).toBe('=A1*3');
+    expect(model.getCellContent(0, 1, 2)).toBe("=A1*3");
 
     expect(model.canUndo()).toEqual(false);
     expect(model.canRedo()).toEqual(true);
 
     // / Lets set A1 to 42
-    model.setUserInput(0, 1, 1, '42');
+    model.setUserInput(0, 1, 1, "42");
     expect(model.getCellValue(0, 1, 1)).toBe(42);
     expect(model.getCellValue(0, 1, 2)).toBe(42 * 3);
 
@@ -117,7 +120,7 @@ describe("Model tests", () => {
       columnEnd: 1,
     });
     expect(model.getCellValue(0, 1, 2)).toBe(0);
-    expect(model.getCellValue(0, 1, 1)).toBe('');
+    expect(model.getCellValue(0, 1, 1)).toBe(null);
 
     expect(model.canUndo()).toEqual(true);
     expect(model.canRedo()).toEqual(false);

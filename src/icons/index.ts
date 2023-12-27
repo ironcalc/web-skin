@@ -18,10 +18,12 @@ import InsertColumnLeftIcon from "./insert-column-left.svg?react";
 import InsertColumnRightIcon from "./insert-column-right.svg?react";
 import InsertRowAboveIcon from "./insert-row-above.svg?react";
 import InsertRowBelow from "./insert-row-below.svg?react";
+import ArrowMiddleFromLine from "./arrow-middle-from-line.svg?react";
 
 import Fx from "./fx.svg?react";
 
 export {
+  ArrowMiddleFromLine,
   DecimalPlacesDecreaseIcon,
   DecimalPlacesIncreaseIcon,
   BorderBottomIcon,

@@ -44,9 +44,11 @@ function Navigation(props: NavigationProps) {
             selected={index === selectedIndex}
             onSelected={() => onSheetSelected(index)}
             onColorChanged={function (hex: string): void {
+              console.log("Picked:", hex);
               throw new Error("Function not implemented.");
             }}
             onRenamed={function (name: string): void {
+              console.log("Renamed:", name);
               throw new Error("Function not implemented.");
             }}
             onDeleted={function (): void {
@@ -55,6 +57,8 @@ function Navigation(props: NavigationProps) {
           />
         ))}
       </Sheets>
+      <Divider />
+      <Advert>ironcalc</Advert>
       <SheetListMenu
         anchorEl={anchorEl}
         isOpen={open}
@@ -82,15 +86,31 @@ const StyledButton = styled(Button)`
 const Container = styled("div")`
   position: absolute;
   bottom: 0px;
+  left: 0px;
+  right: 0px;
   display: flex;
   height: 40px;
   align-items: center;
   padding-left: 12px;
   font-family: Inter;
+  background-color: #FFF;
 `;
 
 const Sheets = styled("div")`
   display: flex;
+  flex-grow: 2;
+`;
+
+const Divider = styled("div")`
+  height: 10px;
+  width: 1px;
+  background-color: #eee;
+  margin: 0px 20px 0px 20px;
+`;
+
+const Advert = styled("div")`
+  color: #f2994a;
+  margin-right: 12px;
 `;
 
 export default Navigation;

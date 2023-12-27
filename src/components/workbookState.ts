@@ -15,12 +15,38 @@ interface Scroll {
   top: number;
 }
 
+type FocusType = 'cell' | 'formula-bar';
+
+
+/**
+ *  In Excel there are two "modes" of editing
+ *   * `init`: When you start typing in a cell. In this mode arrow keys will move away from the cell
+ *   * `edit`: If you double click on a cell or click in the cell while editing.
+ *     In this mode arrow keys will move within the cell.
+ *
+ * In a formula bar mode is always `edit`.
+ */
+type CellEditMode = 'init' | 'edit';
+
+interface Editor {
+  id: number;
+  sheet: number;
+  row: number;
+  column: number;
+  text: string;
+  base: string;
+  mode: CellEditMode;
+  focus: FocusType;
+}
+
 export class WorkbookState {
-  selectedSheet: number;
-  selectedCell: Cell;
-  selectedArea: Area;
-  scroll: Scroll;
-  extendToArea: Area | null;
+  private selectedSheet: number;
+  private selectedCell: Cell;
+  private selectedArea: Area;
+  private scroll: Scroll;
+  private extendToArea: Area | null;
+  private editor: Editor | null;
+  private id;
 
   constructor() {
     const row = 1;
@@ -39,6 +65,43 @@ export class WorkbookState {
       left: 0,
       top: 0,
     };
+    this.editor = null;
+    this.id = Math.floor(Math.random()*1000);
+    console.log('constructor:', this.id);
+  }
+
+  startEditing(focus: FocusType, text: string) {
+    const {row, column} = this.selectedCell;
+    console.log('startEditing',  this.id)
+    this.editor = {
+      id: 0,
+      sheet: this.selectedSheet,
+      row,
+      column,
+      base: '',
+      text,
+      mode: 'init',
+      focus
+    }
+  }
+
+  setEditorText(text: string) {
+    console.log('setText', this.id);
+    if (!this.editor) {
+      return;
+    }
+    console.log('setText', text);
+    this.editor.text = text;
+  }
+
+  endEditing() {
+    console.log('endEditing');
+    this.editor = null;
+  }
+
+  getEditor(): Editor | null {
+    console.log('getEditor', this.id);
+    return this.editor;
   }
 
   getSelectedSheet(): number {
@@ -66,6 +129,7 @@ export class WorkbookState {
   }
 
   selectCell(cell: { row: number; column: number }): void {
+    console.log('selectCell: ', this.id)
     const { row, column } = cell;
     this.selectedArea = {
       rowStart: row,
@@ -74,6 +138,7 @@ export class WorkbookState {
       columnEnd: column,
     };
     this.selectedCell = { row, column };
+    this.editor = null;
   }
 
   getScroll(): Scroll {

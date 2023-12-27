@@ -1,10 +1,21 @@
 import __wbg_init, { Model as WasmModel } from "@ironcalc/wasm";
 import { CellValue, Diff, ServerDiffs } from "./diffs";
 import { CellStyle } from "./types";
-import { Area } from "../components/WorksheetCanvas/types";
+import ModelHistory from "./modelHistory";
 
 export async function init() {
   await __wbg_init();
+}
+interface SheetInfo {
+  name: string;
+  color: string;
+  sheet_id: number;
+}
+interface Area {
+  rowStart: number;
+  rowEnd: number;
+  columnStart: number;
+  columnEnd: number;
 }
 
 interface SelectedArea extends Area {
@@ -15,31 +26,36 @@ export default class Model {
   model: WasmModel;
   authorId: number;
   revision: number;
-  history: { undo: Diff[][]; redo: Diff[][] };
+  onDiffList: (diffs: ServerDiffs) => void;
+  private history: ModelHistory;
 
-  constructor(jsonStr: string | undefined) {
-    if (jsonStr) {
-      this.model = WasmModel.loadFromJson(jsonStr);
-    } else {
-      this.model = new WasmModel("en", "UTC");
-    }
+  private constructor(
+    model: WasmModel,
+    onDiffList: (diffs: ServerDiffs) => void
+  ) {
+    this.model = model;
     this.authorId = 1;
     this.revision = 1;
-    this.history = {
-      undo: [],
-      redo: [],
-    };
+    this.history = new ModelHistory();
+    this.onDiffList = onDiffList;
   }
 
-  deleteHistory() {
-    this.history = {
-      undo: [],
-      redo: []
-    }
+  static new(
+    locale: string,
+    timezone: string,
+    onDiffList: (diffs: ServerDiffs) => void
+  ) {
+    const model = new WasmModel(locale, timezone);
+    return new this(model, onDiffList);
+  }
+
+  static loadFromJson(jsonStr: string, onDiffList: (diffs: ServerDiffs) => void ) {
+    const model = WasmModel.loadFromJson(jsonStr);
+    return new this(model, onDiffList);
   }
 
   setUserInput(sheet: number, row: number, column: number, value: string) {
-    const diffs: Diff[] = [
+    const diffList: Diff[] = [
       {
         type: "set_cell_value",
         sheet,
@@ -49,9 +65,10 @@ export default class Model {
         oldValue: this.getCellContent(sheet, row, column),
       },
     ];
-    this.history.undo.push(diffs);
+    this.history.push(diffList);
     this.model.setUserInput(sheet, row, column, value);
-    this.sendDiffList(diffs);
+    this.sendDiffList(diffList);
+    this.model.evaluate();
   }
 
   addSheet(): void {
@@ -83,16 +100,15 @@ export default class Model {
   }
 
   setColumnWidth(sheet: number, column: number, width: number): void {
-    this.history.undo.push([
+    this.history.push([
       {
-        type: 'set_column_width',
+        type: "set_column_width",
         sheet,
         column,
         newValue: width,
         oldValue: this.model.getColumnWidth(sheet, column),
       },
     ]);
-    this.history.redo = [];
     this.model.setColumnWidth(sheet, column, width);
   }
 
@@ -101,16 +117,15 @@ export default class Model {
   }
 
   setRowHeight(sheet: number, row: number, height: number): void {
-    this.history.undo.push([
+    this.history.push([
       {
-        type: 'set_row_height',
+        type: "set_row_height",
         sheet,
         row,
         newValue: height,
         oldValue: this.model.getRowHeight(sheet, row),
       },
     ]);
-    this.history.redo = [];
     this.model.setRowHeight(sheet, row, height);
   }
 
@@ -130,7 +145,7 @@ export default class Model {
     this.model.setFrozenColumns(sheet, column_count);
   }
 
-  getSheetsInfo(): any {
+  getSheetsInfo(): SheetInfo[] {
     return this.model.getSheetsInfo();
   }
 
@@ -256,54 +271,53 @@ export default class Model {
         }
       }
     }
-    this.history.undo.push(diffList);
-    this.history.redo = [];
+    this.history.push(diffList);
     this.model.evaluate();
   }
 
-  deleteCells(sheet:number, area: Area): void {
+  deleteCells(sheet: number, area: Area): void {
     const diffList: Diff[] = [];
     for (let row = area.rowStart; row <= area.rowEnd; row += 1) {
-      for (let column = area.columnStart; column <= area.columnEnd; column += 1) {
+      for (
+        let column = area.columnStart;
+        column <= area.columnEnd;
+        column += 1
+      ) {
         const oldValue = this.getCellContent(sheet, row, column);
         diffList.push({
-          type: 'delete_cell',
+          type: "delete_cell",
           sheet,
           row,
           column,
-          oldValue
+          oldValue,
         });
         this.model.deleteCell(sheet, row, column);
       }
     }
-    this.history.undo.push(diffList);
-    this.history.redo = [];
+    this.history.push(diffList);
     this.model.evaluate();
   }
+
   undo() {
-    const diffList = this.history.undo.pop();
-    if (!diffList) {
-      return;
-    }
-    this.history.redo.push(diffList);
-    this.applyDiffList(diffList);
+    const diffList = this.history.undo();
+    this.applyUndoDiffList(diffList);
   }
 
   redo() {
-    const diffList = this.history.redo.pop();
-    if (!diffList) {
-      return;
-    }
-    this.history.undo.push(diffList);
+    const diffList = this.history.redo();
     this.applyDiffList(diffList);
   }
 
   canRedo(): boolean {
-    return this.history.redo.length > 0;
+    return this.history.canRedo();
   }
 
   canUndo(): boolean {
-    return this.history.undo.length > 0;
+    return this.history.canUndo();
+  }
+
+  deleteHistory() {
+    this.history.delete();
   }
 
   newSheet(): void {
@@ -330,14 +344,101 @@ export default class Model {
         this.model.setCellStyle(sheet, row, column, newStyle);
       }
     }
-    this.history.undo.push(diffs);
-    this.history.redo = [];
+    this.history.push(diffs);
   }
 
-  applyDiffList(diffs: Diff[]) {
+  applyUndoDiffList(diffList: Diff[]) {
+    let forceEvaluate = false;
+    for (const diff of diffList) {
+      switch (diff.type) {
+        case "set_cell_value": {
+          if (diff.oldValue !== null) {
+            this.model.setUserInput(
+              diff.sheet,
+              diff.row,
+              diff.column,
+              diff.oldValue
+            );
+          } else {
+            this.model.setUserInput(diff.sheet, diff.row, diff.column, "");
+            this.model.deleteCell(diff.sheet, diff.row, diff.column);
+          }
+          forceEvaluate = true;
+          break;
+        }
+        case "set_column_width": {
+          this.model.setColumnWidth(diff.sheet, diff.column, diff.oldValue);
+          break;
+        }
+        case "set_row_height": {
+          this.model.setRowHeight(diff.sheet, diff.row, diff.oldValue);
+          break;
+        }
+        case "delete_cell": {
+          if (diff.oldValue !== null) {
+            this.model.setUserInput(
+              diff.sheet,
+              diff.row,
+              diff.column,
+              diff.oldValue
+            );
+            forceEvaluate = true;
+          }
+          break;
+        }
+        case "remove_cell": {
+          if (diff.oldValue !== null) {
+            this.model.setUserInput(
+              diff.sheet,
+              diff.row,
+              diff.column,
+              diff.oldValue
+            );
+            forceEvaluate = true;
+          } else {
+            this.model.setUserInput(diff.sheet, diff.row, diff.column, "");
+            this.model.deleteCell(diff.sheet, diff.row, diff.column);
+          }
+          break;
+        }
+        case "set_cell_style": {
+          this.model.setCellStyle(
+            diff.sheet,
+            diff.row,
+            diff.column,
+            diff.oldValue
+          );
+          break;
+        }
+        case "insert_row": {
+          this.model.deleteRows(diff.sheet, diff.row, 1);
+          forceEvaluate = true;
+          break;
+        }
+        case "delete_row": {
+          this.model.insertRows(diff.sheet, diff.row, 1);
+          // const { rowData, rowHeight } = diff.oldValue;
+          // this.model.setRowHeight(diff.sheet, diff.row, rowHeight);
+          // this.model.setRowUndoData(diff.sheet, diff.row, rowData);
+          forceEvaluate = true;
+          break;
+        }
+        /* istanbul ignore next */
+        default: {
+          const unrecognized: never = diff;
+          throw new Error(`Unrecognized diff type - ${unrecognized}}.`);
+        }
+      }
+    }
+    if (forceEvaluate) {
+      this.model.evaluate();
+    }
+  }
+
+  applyDiffList(diffList: Diff[]) {
     const { model } = this;
     let needsEvaluation = false;
-    for (const diff of diffs) {
+    for (const diff of diffList) {
       switch (diff.type) {
         case "set_cell_value": {
           if (diff.newValue !== null) {
@@ -400,14 +501,15 @@ export default class Model {
   }
 
   applyServerDiffList(serverDiffs: ServerDiffs) {
-    this.applyDiffList(serverDiffs.diffs);
+    this.applyDiffList(serverDiffs.diffList);
   }
 
-  private sendDiffList(diffs: Diff[]) {
+  private sendDiffList(diffList: Diff[]) {
     const serverDiffs = {
       authorId: this.authorId,
       revision: this.revision,
-      diffs,
+      diffList,
     };
+    this.onDiffList(serverDiffs);
   }
 }

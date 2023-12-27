@@ -98,8 +98,6 @@ const usePointer = (options: PointerSettings): PointerEvents => {
         return;
       }
 
-      console.log('selecting: ', isSelecting.current, isExtending.current)
-
       if (isSelecting.current) {
         const { canvasElement, worksheetCanvas } = options;
         const canvas = canvasElement.current;
@@ -142,15 +140,12 @@ const usePointer = (options: PointerSettings): PointerEvents => {
 
   const onPointerUp = useCallback(
     (event: PointerEvent): void => {
-      console.log('pointerup');
       if (isSelecting.current) {
         const { worksheetElement } = options;
         isSelecting.current = false;
-        console.log('isSelecting', worksheetElement.current)
         worksheetElement.current?.releasePointerCapture(event.pointerId);
       } else if (isExtending.current) {
         const { worksheetElement } = options;
-        console.log('isExtending', worksheetElement.current)
         isExtending.current = false;
         worksheetElement.current?.releasePointerCapture(event.pointerId);
         options.onExtendToEnd();
@@ -192,7 +187,6 @@ const usePointer = (options: PointerSettings): PointerEvents => {
         return;
       }
       const cell = worksheet.getCellByCoordinates(x, y);
-      console.log('yup', cell, worksheetWrapper);
       if (cell) {
         options.onCellSelected(cell, event);
         isSelecting.current = true;
@@ -209,7 +203,6 @@ const usePointer = (options: PointerSettings): PointerEvents => {
       if (!worksheetWrapper) {
         return;
       }
-      console.log('onphandle');
       isExtending.current = true;
       worksheetWrapper.setPointerCapture(event.pointerId);
       event.stopPropagation();

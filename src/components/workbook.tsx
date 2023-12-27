@@ -14,10 +14,10 @@ import { WorkbookState } from "./workbookState";
 interface SheetInfo {
   name: string;
   color: string;
-  sheet_id: string;
+  sheet_id: number;
 }
 
-const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
+const Workbook = (props: { model: Model; workbookState: WorkbookState }) => {
   const { model, workbookState } = props;
   const rootRef = useRef<HTMLDivElement>(null);
   const [_redrawId, setRedrawId] = useState(0);
@@ -29,17 +29,19 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
 
   const onRedo = () => {
     model.redo();
+    setRedrawId((id) => id + 1);
   };
 
   const onUndo = () => {
     model.undo();
+    setRedrawId((id) => id + 1);
   };
 
   const onToggleUnderline = () => {
     const area = {
       sheet: workbookState.getSelectedSheet(),
-      ...workbookState.getSelectedArea()
-    }
+      ...workbookState.getSelectedArea(),
+    };
     model.updateStyle(area, (style) => {
       style.font.u = !style.font.u;
     });
@@ -49,8 +51,8 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
   const onToggleItalic = () => {
     const area = {
       sheet: workbookState.getSelectedSheet(),
-      ...workbookState.getSelectedArea()
-    }
+      ...workbookState.getSelectedArea(),
+    };
     model.updateStyle(area, (style) => {
       style.font.i = !style.font.i;
     });
@@ -60,8 +62,8 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
   const onToggleBold = () => {
     const area = {
       sheet: workbookState.getSelectedSheet(),
-      ...workbookState.getSelectedArea()
-    }
+      ...workbookState.getSelectedArea(),
+    };
     model.updateStyle(area, (style) => {
       style.font.b = !style.font.b;
     });
@@ -71,19 +73,19 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
   const onToggleStrike = () => {
     const area = {
       sheet: workbookState.getSelectedSheet(),
-      ...workbookState.getSelectedArea()
-    }
+      ...workbookState.getSelectedArea(),
+    };
     model.updateStyle(area, (style) => {
       style.font.strike = !style.font.strike;
     });
     setRedrawId((id) => id + 1);
   };
 
-  const onToggleAlignLeft = () => {
+  const onToggleHorizontalAlignLeft = () => {
     const area = {
       sheet: workbookState.getSelectedSheet(),
-      ...workbookState.getSelectedArea()
-    }
+      ...workbookState.getSelectedArea(),
+    };
     model.updateStyle(area, (style) => {
       if (!style.alignment) {
         style.alignment = {
@@ -102,11 +104,11 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
     setRedrawId((id) => id + 1);
   };
 
-  const onToggleAlignCenter = () => {
+  const onToggleHorizontalAlignCenter = () => {
     const area = {
       sheet: workbookState.getSelectedSheet(),
-      ...workbookState.getSelectedArea()
-    }
+      ...workbookState.getSelectedArea(),
+    };
     model.updateStyle(area, (style) => {
       if (!style.alignment) {
         style.alignment = {
@@ -125,11 +127,11 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
     setRedrawId((id) => id + 1);
   };
 
-  const onToggleAlignRight = () => {
+  const onToggleHorizontalAlignRight = () => {
     const area = {
       sheet: workbookState.getSelectedSheet(),
-      ...workbookState.getSelectedArea()
-    }
+      ...workbookState.getSelectedArea(),
+    };
     model.updateStyle(area, (style) => {
       if (!style.alignment) {
         style.alignment = {
@@ -148,6 +150,75 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
     setRedrawId((id) => id + 1);
   };
 
+  const onToggleVerticalAlignTop = () => {
+    const area = {
+      sheet: workbookState.getSelectedSheet(),
+      ...workbookState.getSelectedArea(),
+    };
+    model.updateStyle(area, (style) => {
+      if (!style.alignment) {
+        style.alignment = {
+          horizontal: "general",
+          vertical: "top",
+          wrap_text: false,
+        };
+      } else {
+        if (style.alignment.vertical === "top") {
+          style.alignment.vertical = "bottom";
+        } else {
+          style.alignment.vertical = "top";
+        }
+      }
+    });
+    setRedrawId((id) => id + 1);
+  };
+
+  const onToggleVerticalAlignCenter = () => {
+    const area = {
+      sheet: workbookState.getSelectedSheet(),
+      ...workbookState.getSelectedArea(),
+    };
+    model.updateStyle(area, (style) => {
+      if (!style.alignment) {
+        style.alignment = {
+          horizontal: "general",
+          vertical: "top",
+          wrap_text: false,
+        };
+      } else {
+        if (style.alignment.vertical === "center") {
+          style.alignment.vertical = "bottom";
+        } else {
+          style.alignment.vertical = "center";
+        }
+      }
+    });
+    setRedrawId((id) => id + 1);
+  };
+
+  const onToggleVerticalAlignBottom = () => {
+    const area = {
+      sheet: workbookState.getSelectedSheet(),
+      ...workbookState.getSelectedArea(),
+    };
+    model.updateStyle(area, (style) => {
+      if (!style.alignment) {
+        style.alignment = {
+          horizontal: "general",
+          vertical: "bottom",
+          wrap_text: false,
+        };
+      } else {
+        if (style.alignment.vertical === "bottom") {
+          style.alignment.vertical = "bottom";
+        } else {
+          style.alignment.vertical = "bottom";
+        }
+      }
+    });
+    setRedrawId((id) => id + 1);
+  };
+
   const { onKeyDown } = useKeyboardNavigation({
     onCellsDeleted: function (): void {
       throw new Error("Function not implemented.");
@@ -155,9 +226,11 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
     onExpandAreaSelectedKeyboard: function (
       key: "ArrowRight" | "ArrowLeft" | "ArrowUp" | "ArrowDown"
     ): void {
+      console.log(key);
       throw new Error("Function not implemented.");
     },
     onEditKeyPressStart: function (initText: string): void {
+      console.log(initText);
       throw new Error("Function not implemented.");
     },
     onCellEditStart: function (): void {
@@ -167,6 +240,7 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
     onItalic: onToggleItalic,
     onUnderline: onToggleUnderline,
     onNavigationToEdge: function (direction: NavigationKey): void {
+      console.log(direction);
       throw new Error("Function not implemented.");
     },
     onPageDown: function (): void {
@@ -181,7 +255,7 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
       if (row > LAST_ROW) {
         return;
       }
-      workbookState.selectCell({row, column: cell.column})
+      workbookState.selectCell({ row, column: cell.column });
       setRedrawId((id) => id + 1);
     },
     onArrowUp: function (): void {
@@ -190,7 +264,7 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
       if (row < 1) {
         return;
       }
-      workbookState.selectCell({row, column: cell.column})
+      workbookState.selectCell({ row, column: cell.column });
       setRedrawId((id) => id + 1);
     },
     onArrowLeft: function (): void {
@@ -199,7 +273,7 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
       if (column < 1) {
         return;
       }
-      workbookState.selectCell({row: cell.row, column})
+      workbookState.selectCell({ row: cell.row, column });
       setRedrawId((id) => id + 1);
     },
     onArrowRight: function (): void {
@@ -208,7 +282,7 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
       if (column > LAST_COLUMN) {
         return;
       }
-      workbookState.selectCell({row: cell.row, column})
+      workbookState.selectCell({ row: cell.row, column });
       setRedrawId((id) => id + 1);
     },
     onKeyHome: function (): void {
@@ -218,10 +292,12 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
       throw new Error("Function not implemented.");
     },
     onUndo: function (): void {
-      throw new Error("Function not implemented.");
+      model.undo();
+      setRedrawId((id) => id + 1);
     },
     onRedo: function (): void {
-      throw new Error("Function not implemented.");
+      model.redo();
+      setRedrawId((id) => id + 1);
     },
     root: rootRef,
   });
@@ -233,7 +309,10 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
     rootRef.current.focus();
   });
 
-  const cellAddress = getCellAddress(workbookState.getSelectedArea(), workbookState.getSelectedCell());
+  const cellAddress = getCellAddress(
+    workbookState.getSelectedArea(),
+    workbookState.getSelectedCell()
+  );
 
   return (
     <Container ref={rootRef} onKeyDown={onKeyDown} tabIndex={0}>
@@ -246,9 +325,12 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
         onToggleBold={onToggleBold}
         onToggleItalic={onToggleItalic}
         onToggleStrike={onToggleStrike}
-        onToggleAlignLeft={onToggleAlignLeft}
-        onToggleAlignCenter={onToggleAlignCenter}
-        onToggleAlignRight={onToggleAlignRight}
+        onToggleHorizontalAlignLeft={onToggleHorizontalAlignLeft}
+        onToggleHorizontalAlignCenter={onToggleHorizontalAlignCenter}
+        onToggleHorizontalAlignRight={onToggleHorizontalAlignRight}
+        onToggleVerticalAlignTop={onToggleVerticalAlignTop}
+        onToggleVerticalAlignCenter={onToggleVerticalAlignCenter}
+        onToggleVerticalAlignBottom={onToggleVerticalAlignBottom}
         onCopyStyles={function (): void {
           throw new Error("Function not implemented.");
         }}
@@ -270,12 +352,19 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
         underline={false}
         italic={false}
         strike={false}
-        alignment={""}
+        horizontalAlign={""}
+        verticalAlign="center"
         canEdit={true}
         numFmt={""}
       />
       <FormulaBar cellAddress={cellAddress} />
-      <Worksheet model={model} workbookState={workbookState} />
+      <Worksheet
+        model={model}
+        workbookState={workbookState}
+        refresh={(): void => {
+          setRedrawId((id) => id + 1);
+        }}
+      />
       <Navigation
         sheets={info}
         selectedIndex={workbookState.getSelectedSheet()}
@@ -287,9 +376,11 @@ const Workbook = (props: { model: Model, workbookState: WorkbookState }) => {
           model.newSheet();
         }}
         onSheetColorChanged={function (hex: string): void {
+          console.log(hex);
           throw new Error("Function not implemented.");
         }}
         onSheetRenamed={function (name: string): void {
+          console.log(name);
           throw new Error("Function not implemented.");
         }}
         conSheetDeleted={function (): void {

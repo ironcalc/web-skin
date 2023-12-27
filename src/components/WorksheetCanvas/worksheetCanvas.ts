@@ -39,7 +39,7 @@ export interface CellCoordinates {
   column: number;
 }
 
-const fonts = {
+export const fonts = {
   regular: 'Inter, "Adjusted Arial Fallback", sans-serif',
   mono: '"Fira Mono", "Adjusted Courier New Fallback", serif',
 };
@@ -369,9 +369,13 @@ export default class WorksheetCanvas {
         font = `italic ${font}`;
       }
     }
-    let alignment = "general";
+    let horizontalAlign = "general";
     if (style.alignment && style.alignment.horizontal) {
-      alignment = style.alignment.horizontal;
+      horizontalAlign = style.alignment.horizontal;
+    }
+    let verticalAlign = "bottom";
+    if (style.alignment && style.alignment.vertical) {
+      verticalAlign = style.alignment.vertical;
     }
 
     const context = this.ctx;
@@ -393,13 +397,13 @@ export default class WorksheetCanvas {
       column
     );
     const padding = 4;
-    if (alignment === "general") {
+    if (horizontalAlign === "general") {
       if (typeof value === "number") {
-        alignment = "right";
+        horizontalAlign = "right";
       } else if (typeof value === "boolean") {
-        alignment = "center";
+        horizontalAlign = "center";
       } else {
-        alignment = "left";
+        horizontalAlign = "left";
       }
     }
 
@@ -416,16 +420,25 @@ export default class WorksheetCanvas {
       const textWidth = context.measureText(text).width;
       let textX;
       let textY;
-      if (alignment === "right") {
+      // The idea is that in the present font-size and default row heigh,
+      // top/bottom and center horizontalAlign coincide
+      let verticalPadding = 4;
+      if (horizontalAlign === "right") {
         textX = width - padding + x - textWidth / 2;
-        textY = y + height / 2;
-      } else if (alignment === "center") {
+        
+      } else if (horizontalAlign === "center") {
         textX = x + width / 2;
-        textY = y + height / 2;
       } else {
         // left aligned
         textX = padding + x + textWidth / 2;
+      }
+      if (verticalAlign === "bottom") {
+        textY = y + height - fontSize/2 - verticalPadding;
+      } else if (verticalAlign === "center") {
         textY = y + height / 2;
+      } else {
+        // aligned top
+        textY = y + fontSize/2 + verticalPadding;
       }
       textY += line * lineHeight;
       context.fillText(text, textX, textY);

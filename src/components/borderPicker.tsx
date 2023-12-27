@@ -20,6 +20,7 @@ import {
   ChevronDown,
   Grid2X2 as BorderAllIcon,
   PencilLine,
+  ChevronRight,
 } from "lucide-react";
 import { styled } from "@mui/material/styles";
 import { theme } from "../theme";
@@ -227,25 +228,25 @@ const BorderPicker = (properties: BorderPickerProps) => {
                 type="button"
                 $pressed={false}
                 disabled={false}
-                $underlinedColor={borderColor}
                 ref={borderColorButton}
                 title={t("workbook.toolbar.borders_button_title")}
               >
                 <PencilLine />
               </Button>
-              <ChevronIcon />
+              <div style={{flexGrow:2}}>Border color</div>
+              <ChevronRightStyled />
             </ButtonWrapper>
-            <ButtonWrapper onClick={() => setStylePickerOpen(true)}>
+            <ButtonWrapper onClick={() => setStylePickerOpen(true)} ref={borderStyleButton}>
               <Button
                 type="button"
                 $pressed={false}
-                ref={borderStyleButton}
                 disabled={false}
                 title={t("workbook.toolbar.borders_button_title")}
               >
                 <BorderStyleIcon />
               </Button>
-              <ChevronIcon />
+              <div style={{flexGrow:2}}>Border style</div>
+              <ChevronRightStyled />
             </ButtonWrapper>
           </Styles>
         </BorderPickerDialog>
@@ -264,19 +265,28 @@ const BorderPicker = (properties: BorderPickerProps) => {
             setStylePickerOpen(false);
           }}
           anchorEl={borderStyleButton.current}
-          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-          transformOrigin={{ vertical: "top", horizontal: "left" }}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          transformOrigin={{ vertical: 38, horizontal: -6 }}
         >
           <BorderStyleDialog>
+          <LineWrapper
+              onClick={() => {
+                setBorderStyle(BorderStyle.Dashed);
+                setStylePickerOpen(false);
+              }}
+              $checked={borderStyle === BorderStyle.None}
+            >
+              <BorderDescription>None</BorderDescription>
+              <NoneLine />
+            </LineWrapper>
             <LineWrapper
               onClick={() => {
                 setBorderStyle(BorderStyle.Thin);
                 setStylePickerOpen(false);
               }}
+              $checked={borderStyle === BorderStyle.Thin}
             >
-              <CheckIconWrapper>
-                <CheckIcon $checked={borderStyle === BorderStyle.Thin} />
-              </CheckIconWrapper>
+              <BorderDescription>Thin</BorderDescription>
               <SolidLine />
             </LineWrapper>
             <LineWrapper
@@ -284,10 +294,9 @@ const BorderPicker = (properties: BorderPickerProps) => {
                 setBorderStyle(BorderStyle.Medium);
                 setStylePickerOpen(false);
               }}
+              $checked={borderStyle === BorderStyle.Medium}
             >
-              <CheckIconWrapper>
-                <CheckIcon $checked={borderStyle === BorderStyle.Medium} />
-              </CheckIconWrapper>
+              <BorderDescription>Medium</BorderDescription>
               <MediumLine />
             </LineWrapper>
             <LineWrapper
@@ -295,10 +304,9 @@ const BorderPicker = (properties: BorderPickerProps) => {
                 setBorderStyle(BorderStyle.Thick);
                 setStylePickerOpen(false);
               }}
+              $checked={borderStyle === BorderStyle.Thick}
             >
-              <CheckIconWrapper>
-                <CheckIcon $checked={borderStyle === BorderStyle.Thick} />
-              </CheckIconWrapper>
+              <BorderDescription>Thick</BorderDescription>
               <ThickLine />
             </LineWrapper>
             <LineWrapper
@@ -306,10 +314,9 @@ const BorderPicker = (properties: BorderPickerProps) => {
                 setBorderStyle(BorderStyle.Dotted);
                 setStylePickerOpen(false);
               }}
+              $checked={borderStyle === BorderStyle.Dotted}
             >
-              <CheckIconWrapper>
-                <CheckIcon $checked={borderStyle === BorderStyle.Dotted} />
-              </CheckIconWrapper>
+              <BorderDescription>Dotted</BorderDescription>
               <DottedLine />
             </LineWrapper>
             <LineWrapper
@@ -317,13 +324,21 @@ const BorderPicker = (properties: BorderPickerProps) => {
                 setBorderStyle(BorderStyle.Dashed);
                 setStylePickerOpen(false);
               }}
+              $checked={borderStyle === BorderStyle.Dashed}
             >
-              <CheckIconWrapper>
-                <CheckIcon $checked={borderStyle === BorderStyle.Dashed} />
-              </CheckIconWrapper>
+              <BorderDescription>Dashed</BorderDescription>
               <DashedLine />
             </LineWrapper>
-            {/* TODO: Add the double line */}
+            <LineWrapper
+              onClick={() => {
+                setBorderStyle(BorderStyle.Dashed);
+                setStylePickerOpen(false);
+              }}
+              $checked={borderStyle === BorderStyle.Double}
+            >
+              <BorderDescription>Double</BorderDescription>
+              <DoubleLine />
+            </LineWrapper>
           </BorderStyleDialog>
         </StyledPopover>
       </StyledPopover>
@@ -331,15 +346,25 @@ const BorderPicker = (properties: BorderPickerProps) => {
   );
 };
 
-const LineWrapper = styled("div")`
+type LineWrapperProperties = { $checked: boolean };
+const LineWrapper = styled("div")<LineWrapperProperties>`
   display: flex;
   flex-direction: row;
   align-items: center;
+  background-color: ${({ $checked }): string => {
+    if ($checked) {
+      return '#EEEEEE;';
+    } else {
+      return 'inherit;';
+    }
+  }};
   &:hover {
-    background-color: ${theme.palette.grey["400"]};
-    border-top-color: ${theme.palette.grey["400"]};
+    border: 1px solid #EEEEEE;
   }
+  padding:8px;
   cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid white;
 `;
 
 const CheckIconWrapper = styled("div")`
@@ -347,8 +372,10 @@ const CheckIconWrapper = styled("div")`
 `;
 
 type CheckIconProperties = { $checked: boolean };
-const CheckIcon = styled(Check)<CheckIconProperties>`
-  font-size: 7px;
+const CheckIcon = styled("div")<CheckIconProperties>`
+  width: 2px;
+  background-color: #EEE;
+  height: 28px;
   visibility: ${({ $checked }): string => {
     if ($checked) {
       return "visible";
@@ -356,43 +383,47 @@ const CheckIcon = styled(Check)<CheckIconProperties>`
     return "hidden";
   }};
 `;
-
+const NoneLine = styled("div")`
+  width: 68px;
+  border-top: 1px solid #E0E0E0;
+`;
 const SolidLine = styled("div")`
-  width: 40px;
-  border-top: 1px solid grey;
+  width: 68px;
+  border-top: 1px solid #333333;
 `;
 const MediumLine = styled("div")`
-  width: 40px;
-  border-top: 2px solid grey;
+  width: 68px;
+  border-top: 2px solid #333333;
 `;
 const ThickLine = styled("div")`
-  width: 40px;
-  border-top: 3px solid grey;
+  width: 68px;
+  border-top: 3px solid #333333;
 `;
 const DashedLine = styled("div")`
-  width: 40px;
-  border-top: 1px dashed grey;
+  width: 68px;
+  border-top: 1px dashed #333333;
 `;
 const DottedLine = styled("div")`
-  width: 40px;
-  border-top: 1px dotted grey;
+  width: 68px;
+  border-top: 1px dotted #333333;
 `;
-// const DoubleLine = styled('div')`
-//   width: 40px;
-//   border-top: 3px double grey;
-// `;
+const DoubleLine = styled('div')`
+  width: 68px;
+  border-top: 3px double #333333;
+`;
 
 const Divider = styled("div")`
   display: inline-flex;
-  width: 1px;
-  border-left: 1px solid #d3d6e9;
-  margin-left: 5px;
-  margin-right: 5px;
+  heigh: 1px;
+  border-bottom: 1px solid #EEE;
+  margin-left: 0px;
+  margin-right: 0px;
 `;
 
 const Borders = styled("div")`
   display: flex;
   flex-direction: column;
+  padding-bottom: 4px;
 `;
 
 const Styles = styled("div")`
@@ -411,15 +442,16 @@ const ButtonWrapper = styled("div")`
   flex-direction: row;
   align-items: center;
   &:hover {
-    background-color: ${(): string => theme.palette.grey["400"]};
+    background-color: #EEE;
     border-top-color: ${(): string => theme.palette.grey["400"]};
   }
   cursor: pointer;
+  padding: 8px
 `;
 
 const BorderStyleDialog = styled("div")`
   background: ${({ theme }): string => theme.palette.background.default};
-  padding: 15px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -437,13 +469,19 @@ const StyledPopover = styled(Popover)`
   .MuiList-padding {
     padding: 0px;
   }
+  font-family: ${({ theme }) => theme.typography.fontFamily};
+  font-size: 13px;
 `;
 
 const BorderPickerDialog = styled("div")`
   background: ${({ theme }): string => theme.palette.background.default};
-  padding: 15px;
+  padding: 4px;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+`;
+
+const BorderDescription = styled("div")`
+width: 70px;
 `;
 
 // type TypeButtonProperties = { $pressed: boolean; $underlinedColor?: string };
@@ -482,18 +520,17 @@ type TypeButtonProperties = { $pressed: boolean; $underlinedColor?: string };
 const Button = styled("button")<TypeButtonProperties>(
   ({ disabled, $pressed, $underlinedColor }) => {
     let result: Record<string, any> = {
-      width: "25px",
-      height: "25px",
+      width: "24px",
+      height: "24px",
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
-      fontSize: "26px",
+      // fontSize: "26px",
       border: "0px solid #fff",
       borderRadius: "2px",
       marginRight: "5px",
       transition: "all 0.2s",
       cursor: "pointer",
-      backgroundColor: "white",
       padding: "0px",
     };
     if (disabled) {
@@ -504,26 +541,26 @@ const Button = styled("button")<TypeButtonProperties>(
       result.borderBottom = $underlinedColor
         ? `3px solid ${$underlinedColor}`
         : "none";
-      (result.color = "#21243A"), //theme.palette.text.primary;
+      (result.color = "#21243A"),
         (result.backgroundColor = $pressed
           ? theme.palette.grey["600"]
-          : "#FFF");
+          : "inherit");
       result["&:hover"] = {
         backgroundColor: "#F1F2F8",
         borderTopColor: "#F1F2F8",
       };
       result["svg"] = {
-        width: "24px",
-        height: "24px",
+        width: "16px",
+        height: "16px",
       };
     }
     return result;
   }
 );
 
-const ChevronIcon = styled(ChevronDown)`
-  margin-left: 4px;
-  font-size: 7px;
+const ChevronRightStyled = styled(ChevronRight)`
+  width: 16px;
+  height: 16px;
 `;
 
 export default BorderPicker;

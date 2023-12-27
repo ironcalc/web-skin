@@ -9,8 +9,15 @@ import {
 import usePointer from "./usePointer";
 import { WorkbookState } from "./workbookState";
 import { Cell } from "./WorksheetCanvas/types";
+import Editor from "./editor";
+import { EditorState } from "./editor/editorContext";
+import { getFormulaHTML } from "./editor/util";
 
-function Worksheet(props: { model: Model; workbookState: WorkbookState }) {
+function Worksheet(props: {
+  model: Model;
+  workbookState: WorkbookState;
+  refresh: () => void;
+}) {
   const canvasElement = useRef<HTMLCanvasElement>(null);
 
   const worksheetElement = useRef<HTMLDivElement>(null);
@@ -27,7 +34,22 @@ function Worksheet(props: { model: Model; workbookState: WorkbookState }) {
   const columnHeaders = useRef<HTMLDivElement>(null);
   const worksheetCanvas = useRef<WorksheetCanvas | null>(null);
 
-  const { model, workbookState } = props;
+  const [isEditing, setEditing] = useState(false);
+
+  const [editorContext, _setEditorContext] = useState<EditorState>({
+    mode: "accept",
+    insertRange: null,
+    baseText: '',
+  });
+
+  const setEditorContext = (c) => {
+    console.log('setEditorcontext', c.baseText, c);
+    let t = _setEditorContext(c);
+    console.log(t, editorContext.baseText);
+    return t;
+  }
+
+  const { model, workbookState, refresh } = props;
   useEffect(() => {
     const canvasRef = canvasElement.current;
     const columnGuideRef = columnResizeGuide.current;
@@ -85,6 +107,8 @@ function Worksheet(props: { model: Model; workbookState: WorkbookState }) {
     worksheetCanvas.current = canvas;
   });
 
+  const sheetNames = model.getSheetsInfo().map(s => s.name);
+
   const {
     onPointerMove,
     onPointerDown,
@@ -93,7 +117,6 @@ function Worksheet(props: { model: Model; workbookState: WorkbookState }) {
     // onContextMenu,
   } = usePointer({
     onCellSelected: (cell: Cell, event: React.MouseEvent) => {
-      console.log('onPointerDownAtCell');
       event.preventDefault();
       event.stopPropagation();
       workbookState.selectCell(cell);
@@ -141,10 +164,8 @@ function Worksheet(props: { model: Model; workbookState: WorkbookState }) {
       // if (area.columnStart <= frozenColumns && area.columnEnd > frozenColumns) {
       //   left = 0;
       // }
-      console.log('onPointerMoveToCell');
     }, //  editorActions.onPointerMoveToCell,
     onExtendToCell: (cell) => {
-      console.log('onExtendToCell');
       const canvas = worksheetCanvas.current;
       if (!canvas) {
         return;
@@ -174,7 +195,6 @@ function Worksheet(props: { model: Model; workbookState: WorkbookState }) {
       model.extendTo(sheet, initialArea, extendedArea);
       workbookState.clearExtendToArea();
       canvas.renderSheet();
-      console.log('onExtendToEnd');
     }, // editorActions.onExtendToEnd,
     canvasElement,
     worksheetElement,
@@ -196,18 +216,70 @@ function Worksheet(props: { model: Model; workbookState: WorkbookState }) {
     worksheetCanvas.current.renderSheet();
   };
 
+  const {row, column} = workbookState.getSelectedCell();
+  const selectedSheet = workbookState.getSelectedSheet();
+
   return (
     <Wrapper ref={scrollElement} onScroll={onScroll}>
       <Spacer ref={spacerElement} />
       <SheetContainer
         ref={worksheetElement}
-        onPointerDown={onPointerDown}
+        onPointerDown={(event) => {
+          if (isEditing === true && editorContext.mode !== 'insert') {
+            setEditing(false);
+            model.setUserInput(selectedSheet, row, column, editorContext.baseText);
+          }
+          onPointerDown(event);
+        }}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onDoubleClick={(event) => {
+          const sheet = workbookState.getSelectedSheet();
+          const {row, column} = workbookState.getSelectedCell();
+          const text = model.getCellContent(sheet, row, column) || '';
+          console.log('dbclick', text);
+          setEditorContext ((c: EditorState) => {
+            return {
+              mode: c.mode,
+              insertRange: c.insertRange,
+              baseText: text
+            };
+          })
+          workbookState.startEditing("cell", `${text}`);
+          
+          setEditing(true);
+          event.stopPropagation();
+          event.preventDefault();
+          // refresh();
+        }}
       >
         <SheetCanvas ref={canvasElement} />
         <CellOutline ref={cellOutline}>
-          {/* <Editor
+          {
+            <Editor
+              minimalWidth={200}
+              minimalHeight={90}
+              textColor="#333"
+              getStyledText={(text: string, insertRangeText: string) => {
+                return getFormulaHTML(
+                  text,
+                  0,
+                  sheetNames,
+                  editorContext.insertRange,
+                  insertRangeText
+                );
+              } }
+              onEditEnd={(text: string) => {
+                console.log(text);
+                setEditing(false);
+                model.setUserInput(selectedSheet, row, column, text);
+              } }
+              originalText={model.getCellContent(selectedSheet, row, column) || ''}
+              display={isEditing}
+              cell={{ sheet: selectedSheet, row, column }}
+              sheetNames={sheetNames}
+            />
+            /* <Editor
               data-testid={WorkbookTestId.WorkbookCellEditor}
               onEditChange={onEditChange}
               onEditEnd={onEditEnd}
@@ -219,7 +291,8 @@ function Worksheet(props: { model: Model; workbookState: WorkbookState }) {
               cursorStart={cellEditing?.cursorStart ?? 0}
               cursorEnd={cellEditing?.cursorEnd ?? 0}
               mode={cellEditing?.mode ?? 'init'}
-            /> */}
+            /> */
+          }
         </CellOutline>
         <AreaOutline ref={areaOutline} />
         <ExtendToOutline ref={extendToOutline} />

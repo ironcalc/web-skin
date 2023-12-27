@@ -29,7 +29,7 @@ export const Basic: Story = {
     underline: false,
     italic: false,
     strike: false,
-    alignment: 'left',
+    horizontalAlign: 'left',
     numFmt: 'general',
     onRedo: action('clicked'),
   },

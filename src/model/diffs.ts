@@ -84,5 +84,5 @@ export type Diff =
 export interface ServerDiffs {
   authorId: number;
   revision: number;
-  diffs: Diff[];
+  diffList: Diff[];
 }

@@ -15,19 +15,22 @@ import {
   Undo2,
   Grid2X2,
   Type,
+  ArrowDownToLine,
+  ArrowUpToLine,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-// import { BorderOptions } from '../model/model';
 import { useRef, useState } from 'react';
 import ColorPicker from './colorPicker';
 import BorderPicker from './borderPicker';
-import { DecimalPlacesDecreaseIcon, DecimalPlacesIncreaseIcon } from '../icons';
+import { ArrowMiddleFromLine, DecimalPlacesDecreaseIcon, DecimalPlacesIncreaseIcon } from '../icons';
 import { NumberFormats, decreaseDecimalPlaces, increaseDecimalPlaces } from './formatUtil';
 import FormatMenu from './formatMenu';
 import { styled } from '@mui/material/styles';
 import { theme } from '../theme';
 import { BorderOptions } from '../model/types';
 
+
+type VerticalAlign = "top" | "center" | "bottom";
 
 type ToolbarProperties = {
   canUndo: boolean;
@@ -38,9 +41,12 @@ type ToolbarProperties = {
   onToggleBold: () => void;
   onToggleItalic: () => void;
   onToggleStrike: () => void;
-  onToggleAlignLeft: () => void;
-  onToggleAlignCenter: () => void;
-  onToggleAlignRight: () => void;
+  onToggleHorizontalAlignLeft: () => void;
+  onToggleHorizontalAlignCenter: () => void;
+  onToggleHorizontalAlignRight: () => void;
+  onToggleVerticalAlignTop: () => void;
+  onToggleVerticalAlignCenter: () => void;
+  onToggleVerticalAlignBottom: () => void;
   onCopyStyles: () => void;
   onTextColorPicked: (hex: string) => void;
   onFillColorPicked: (hex: string) => void;
@@ -52,7 +58,8 @@ type ToolbarProperties = {
   underline: boolean;
   italic: boolean;
   strike: boolean;
-  alignment: string;
+  horizontalAlign: string;
+  verticalAlign: VerticalAlign;
   canEdit: boolean;
   numFmt: string;
 };
@@ -235,8 +242,8 @@ function Toolbar(properties: ToolbarProperties) {
       <Divider />
       <Button
         type="button"
-        $pressed={properties.alignment === 'left'}
-        onClick={properties.onToggleAlignLeft}
+        $pressed={properties.horizontalAlign === 'left'}
+        onClick={properties.onToggleHorizontalAlignLeft}
         disabled={!canEdit}
         title={t('toolbar.align_left')}
       >
@@ -244,8 +251,8 @@ function Toolbar(properties: ToolbarProperties) {
       </Button>
       <Button
         type="button"
-        $pressed={properties.alignment === 'center'}
-        onClick={properties.onToggleAlignCenter}
+        $pressed={properties.horizontalAlign === 'center'}
+        onClick={properties.onToggleHorizontalAlignCenter}
         disabled={!canEdit}
         title={t('toolbar.align_center')}
       >
@@ -253,12 +260,39 @@ function Toolbar(properties: ToolbarProperties) {
       </Button>
       <Button
         type="button"
-        $pressed={properties.alignment === 'right'}
-        onClick={properties.onToggleAlignRight}
+        $pressed={properties.horizontalAlign === 'right'}
+        onClick={properties.onToggleHorizontalAlignRight}
         disabled={!canEdit}
         title={t('toolbar.align_right')}
       >
         <AlignRight />
+      </Button>
+      <Button
+        type="button"
+        $pressed={properties.verticalAlign === 'top'}
+        onClick={properties.onToggleVerticalAlignTop}
+        disabled={!canEdit}
+        title={t('toolbar.vertical_align_top')}
+      >
+        <ArrowUpToLine />
+      </Button>
+      <Button
+        type="button"
+        $pressed={properties.verticalAlign === 'center'}
+        onClick={properties.onToggleVerticalAlignCenter}
+        disabled={!canEdit}
+        title={t('toolbar.vertical_align_center')}
+      >
+        <ArrowMiddleFromLine />
+      </Button>
+      <Button
+        type="button"
+        $pressed={properties.verticalAlign === 'bottom'}
+        onClick={properties.onToggleVerticalAlignBottom}
+        disabled={!canEdit}
+        title={t('toolbar.vertical_align_bottom')}
+      >
+        <ArrowDownToLine />
       </Button>
       <Divider />
       <Button
