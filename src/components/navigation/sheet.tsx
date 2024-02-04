@@ -77,6 +77,7 @@ const Wrapper = styled("div")`
 const Name = styled("div")`
   font-size: 12px;
   margin-right: 5px;
+  tex-wrap: no-wrap;
 `;
 
 export default Sheet;

@@ -67,12 +67,10 @@ export class WorkbookState {
     };
     this.editor = null;
     this.id = Math.floor(Math.random()*1000);
-    console.log('constructor:', this.id);
   }
 
   startEditing(focus: FocusType, text: string) {
     const {row, column} = this.selectedCell;
-    console.log('startEditing',  this.id)
     this.editor = {
       id: 0,
       sheet: this.selectedSheet,
@@ -86,16 +84,13 @@ export class WorkbookState {
   }
 
   setEditorText(text: string) {
-    console.log('setText', this.id);
     if (!this.editor) {
       return;
     }
-    console.log('setText', text);
     this.editor.text = text;
   }
 
   endEditing() {
-    console.log('endEditing');
     this.editor = null;
   }
 

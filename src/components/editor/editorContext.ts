@@ -22,6 +22,7 @@ export interface EditorState {
   mode: EditorMode;
   insertRange: null | Area;
   baseText: string;
+  id: number;
 }
 
 interface EditorContextType {
@@ -35,7 +36,8 @@ const EditorContext = createContext<EditorContextType>({
   editorContext: {
     mode: "accept",
     insertRange: null,
-    baseText: ''
+    baseText: '',
+    id: Math.floor(Math.random()*1000),
   },
   setEditorContext: () => {},
 });

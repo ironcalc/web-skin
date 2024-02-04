@@ -1153,9 +1153,9 @@ export default class WorksheetCanvas {
   }
 
   renderSheet(): void {
-    console.time("render");
+    // console.time("render");
     this._renderSheet();
-    console.timeEnd("render");
+    // console.timeEnd("render");
   }
 
   private _renderSheet(): void {

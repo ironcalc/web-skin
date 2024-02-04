@@ -111,6 +111,7 @@ const Editor = (options: EditorOptions) => {
 
   const baseText = editorContext.baseText;
   const text = baseText + insertRangeText;
+  console.log('baseText', baseText, 'insertRange:', insertRangeText);
 
   const formulaRef = useRef<HTMLDivElement>(null);
   const maskRef = useRef<HTMLDivElement>(null);
@@ -147,14 +148,18 @@ const Editor = (options: EditorOptions) => {
   useEffect(() => {
     if (isInReferenceMode) {
       setEditorContext((c) => {
-        c.mode = "insert";
-        return c;
+        return {
+          ...c,
+          mode: "insert",
+        };
       });
     } else {
       setEditorContext((c) => {
-        c.mode = "cruise";
-        c.insertRange = null;
-        return c;
+        return {
+          ...c,
+          mode: "cruise",
+          insertRange: null,
+        };
       });
     }
   }, [isInReferenceMode]);
@@ -165,7 +170,7 @@ const Editor = (options: EditorOptions) => {
     }
   }, [display]);
 
-  console.log("Ok, this is running", text, editorContext);
+  console.log("Ok, this is running", text, editorContext.id);
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -217,7 +222,7 @@ const Editor = (options: EditorOptions) => {
               if (!editorContext.insertRange) {
                 setEditorContext((c) => {
                   return {
-                    mode: c.mode,
+                    ...c,
                     insertRange: {
                       absoluteColumnEnd: false,
                       absoluteColumnStart: false,
@@ -241,7 +246,7 @@ const Editor = (options: EditorOptions) => {
               if (!editorContext.insertRange) {
                 setEditorContext((c) => {
                   return {
-                    mode: c.mode,
+                    ...c,
                     insertRange: {
                       absoluteColumnEnd: false,
                       absoluteColumnStart: false,
@@ -264,7 +269,7 @@ const Editor = (options: EditorOptions) => {
                     column = 1;
                   }
                   return {
-                    mode: c.mode,
+                    ...c,
                     insertRange: {
                       absoluteColumnEnd: false,
                       absoluteColumnStart: false,
@@ -316,8 +321,9 @@ const Editor = (options: EditorOptions) => {
       }
       if (editorContext.mode === "insert") {
         setBaseText(text);
-        setEditorContext((_) => {
+        setEditorContext((context) => {
           return {
+            ...context,
             mode: "cruise",
             insertRange: null,
           };
@@ -390,8 +396,10 @@ const Editor = (options: EditorOptions) => {
         onClick={(event) => {
           console.log("Setting mode");
           setEditorContext((c) => {
-            c.mode = "cruise";
-            return c;
+            return {
+              ...c,
+              mode: "cruise",
+            };
           });
           console.log("here");
           // if (display) {

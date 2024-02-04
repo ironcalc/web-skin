@@ -10,7 +10,7 @@ import usePointer from "./usePointer";
 import { WorkbookState } from "./workbookState";
 import { Cell } from "./WorksheetCanvas/types";
 import Editor from "./editor";
-import { EditorState } from "./editor/editorContext";
+import EditorContext, { EditorState } from "./editor/editorContext";
 import { getFormulaHTML } from "./editor/util";
 
 function Worksheet(props: {
@@ -36,18 +36,14 @@ function Worksheet(props: {
 
   const [isEditing, setEditing] = useState(false);
 
-  const [editorContext, _setEditorContext] = useState<EditorState>({
+  const [editorContext, setEditorContext] = useState<EditorState>({
     mode: "accept",
     insertRange: null,
     baseText: '',
+    id: Math.floor(Math.random()*1000),
   });
 
-  const setEditorContext = (c) => {
-    console.log('setEditorcontext', c.baseText, c);
-    let t = _setEditorContext(c);
-    console.log(t, editorContext.baseText);
-    return t;
-  }
+  console.log('worksheet', editorContext.id);
 
   const { model, workbookState, refresh } = props;
   useEffect(() => {
@@ -220,6 +216,7 @@ function Worksheet(props: {
   const selectedSheet = workbookState.getSelectedSheet();
 
   return (
+    <EditorContext.Provider value={{editorContext, setEditorContext}}>
     <Wrapper ref={scrollElement} onScroll={onScroll}>
       <Spacer ref={spacerElement} />
       <SheetContainer
@@ -238,14 +235,18 @@ function Worksheet(props: {
           const {row, column} = workbookState.getSelectedCell();
           const text = model.getCellContent(sheet, row, column) || '';
           console.log('dbclick', text);
+
+          workbookState.startEditing("cell", `${text}`);
           setEditorContext ((c: EditorState) => {
+            console.log('text', text, c.id);
             return {
               mode: c.mode,
               insertRange: c.insertRange,
-              baseText: text
+              baseText: text,
+              dontChange: true,
+              id: c.id,
             };
-          })
-          workbookState.startEditing("cell", `${text}`);
+          });
           
           setEditing(true);
           event.stopPropagation();
@@ -305,6 +306,7 @@ function Worksheet(props: {
         <ColumnHeaders ref={columnHeaders} />
       </SheetContainer>
     </Wrapper>
+    </EditorContext.Provider>
   );
 }
 

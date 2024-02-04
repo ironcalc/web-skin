@@ -18,7 +18,6 @@ function App() {
       const _model = Model.loadFromJson(jsonStr, (diffList) => {
         console.log(diffList);
       });
-      console.log("App", !!model, !!workbookState);
 
       if (!model) setModel(_model);
       if (!workbookState) setWorkbookState(new WorkbookState());

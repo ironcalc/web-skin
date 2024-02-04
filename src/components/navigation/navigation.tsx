@@ -1,5 +1,5 @@
 import { Button, styled } from "@mui/material";
-import { Menu, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu, Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SheetOptions } from "./types";
@@ -36,29 +36,34 @@ function Navigation(props: NavigationProps) {
         <Menu />
       </StyledButton>
       <Sheets>
-        {sheets.map((tab, index) => (
-          <Sheet
-            key={tab.sheetId}
-            name={tab.name}
-            color={tab.color}
-            selected={index === selectedIndex}
-            onSelected={() => onSheetSelected(index)}
-            onColorChanged={function (hex: string): void {
-              console.log("Picked:", hex);
-              throw new Error("Function not implemented.");
-            }}
-            onRenamed={function (name: string): void {
-              console.log("Renamed:", name);
-              throw new Error("Function not implemented.");
-            }}
-            onDeleted={function (): void {
-              throw new Error("Function not implemented.");
-            }}
-          />
-        ))}
+        <SheetInner>
+          {sheets.map((tab, index) => (
+            <Sheet
+              key={tab.sheetId}
+              name={tab.name}
+              color={tab.color}
+              selected={index === selectedIndex}
+              onSelected={() => onSheetSelected(index)}
+              onColorChanged={function (hex: string): void {
+                console.log("Picked:", hex);
+                throw new Error("Function not implemented.");
+              }}
+              onRenamed={function (name: string): void {
+                console.log("Renamed:", name);
+                throw new Error("Function not implemented.");
+              }}
+              onDeleted={function (): void {
+                throw new Error("Function not implemented.");
+              }}
+            />
+          ))}
+        </SheetInner>
       </Sheets>
-      <Divider />
-      <Advert>ironcalc</Advert>
+      <LeftDivider />
+      <ChevronLeftStyled />
+      <ChevronRightStyled />
+      <RightDivider />
+      <Advert>ironcalc.com</Advert>
       <SheetListMenu
         anchorEl={anchorEl}
         isOpen={open}
@@ -82,6 +87,22 @@ const StyledButton = styled(Button)`
   }
 `;
 
+const ChevronLeftStyled = styled(ChevronLeft)`
+  color: #333333;
+  width: 16px;
+  height: 16px;
+  padding: 4px;
+  cursor: pointer;
+`;
+
+const ChevronRightStyled = styled(ChevronRight)`
+  color: #333333;
+  width: 16px;
+  height: 16px;
+  padding: 4px;
+  cursor: pointer;
+`;
+
 // Note I have to specify the font-family in every component that can be considered stand-alone
 const Container = styled("div")`
   position: absolute;
@@ -93,24 +114,36 @@ const Container = styled("div")`
   align-items: center;
   padding-left: 12px;
   font-family: Inter;
-  background-color: #FFF;
+  background-color: #fff;
 `;
 
 const Sheets = styled("div")`
-  display: flex;
   flex-grow: 2;
+  overflow: hidden;
 `;
 
-const Divider = styled("div")`
+const SheetInner = styled("div")`
+  display: flex;
+`;
+
+const LeftDivider = styled("div")`
   height: 10px;
   width: 1px;
   background-color: #eee;
-  margin: 0px 20px 0px 20px;
+  margin: 0px 10px 0px 0px;
+`;
+
+const RightDivider = styled("div")`
+  height: 10px;
+  width: 1px;
+  background-color: #eee;
+  margin: 0px 20px 0px 10px;
 `;
 
 const Advert = styled("div")`
   color: #f2994a;
   margin-right: 12px;
+  font-size: 12px;
 `;
 
 export default Navigation;
