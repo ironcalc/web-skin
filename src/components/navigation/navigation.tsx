@@ -1,10 +1,11 @@
-import { Button, styled } from "@mui/material";
+import { styled } from "@mui/material";
 import { ChevronLeft, ChevronRight, Menu, Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SheetOptions } from "./types";
 import SheetListMenu from "./menus";
 import Sheet from "./sheet";
+import { StyledButton } from "../toolbar";
 
 export interface NavigationProps {
   sheets: SheetOptions[];
@@ -13,7 +14,7 @@ export interface NavigationProps {
   onAddBlankSheet: () => void;
   onSheetColorChanged: (hex: string) => void;
   onSheetRenamed: (name: string) => void;
-  conSheetDeleted: () => void;
+  onSheetDeleted: () => void;
 }
 
 function Navigation(props: NavigationProps) {
@@ -29,10 +30,10 @@ function Navigation(props: NavigationProps) {
   };
   return (
     <Container>
-      <StyledButton title={t("navigation.add_sheet")}>
+      <StyledButton title={t("navigation.add_sheet")} $pressed={false}>
         <Plus />
       </StyledButton>
-      <StyledButton onClick={handleClick} title={t("navigation.sheet_list")}>
+      <StyledButton onClick={handleClick} title={t("navigation.sheet_list")} $pressed={false}>
         <Menu />
       </StyledButton>
       <Sheets>
@@ -75,17 +76,6 @@ function Navigation(props: NavigationProps) {
   );
 }
 
-const StyledButton = styled(Button)`
-  width: 24px;
-  height: 24px;
-  min-width: 0px;
-  padding: 0px;
-  color: #333;
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-`;
 
 const ChevronLeftStyled = styled(ChevronLeft)`
   color: #333333;

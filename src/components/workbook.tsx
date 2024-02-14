@@ -219,6 +219,54 @@ const Workbook = (props: { model: Model; workbookState: WorkbookState }) => {
     setRedrawId((id) => id + 1);
   };
 
+  const onTextColorPicked = (hex: string) => {
+    const area = {
+      sheet: workbookState.getSelectedSheet(),
+      ...workbookState.getSelectedArea(),
+    };
+    model.updateStyle(area, (style) => {
+      style.font.color = hex;
+    });
+    setRedrawId((id) => id + 1);
+  };
+
+  const onFillColorPicked = (hex: string) => {
+    const area = {
+      sheet: workbookState.getSelectedSheet(),
+      ...workbookState.getSelectedArea(),
+    };
+    model.updateStyle(area, (style) => {
+      style.fill.fg_color = hex;
+    });
+    setRedrawId((id) => id + 1);
+  };
+
+  const onNumberFormatPicked = (numberFmt: string) => {
+    const area = {
+      sheet: workbookState.getSelectedSheet(),
+      ...workbookState.getSelectedArea(),
+    };
+    model.updateStyle(area, (style) => {
+      style.num_fmt = numberFmt;
+    });
+    setRedrawId((id) => id + 1);
+  };
+
+  const onCopyStyles = () => {
+    const area = {
+      sheet: workbookState.getSelectedSheet(),
+      ...workbookState.getSelectedArea(),
+    };
+    const styles = [];
+    for (let row=area.rowStart; row < area.rowEnd; row++) {
+      const styleRow = []
+      for (let column = area.columnStart; column < area.columnEnd; column++) {
+        styleRow.push(model.getCellStyle(area.sheet, row, column));
+      }
+      styles.push(styleRow);
+    }
+  }
+
   const { onKeyDown } = useKeyboardNavigation({
     onCellsDeleted: function (): void {
       throw new Error("Function not implemented.");
@@ -313,6 +361,12 @@ const Workbook = (props: { model: Model; workbookState: WorkbookState }) => {
     workbookState.getSelectedArea(),
     workbookState.getSelectedCell()
   );
+ 
+  const sheet = workbookState.getSelectedSheet();
+  const {row, column} = workbookState.getSelectedCell();
+
+  const style = model.getCellStyle(sheet, row, column);
+  console.log("data", sheet, row, column, style)
 
   return (
     <Container ref={rootRef} onKeyDown={onKeyDown} tabIndex={0}>
@@ -331,29 +385,21 @@ const Workbook = (props: { model: Model; workbookState: WorkbookState }) => {
         onToggleVerticalAlignTop={onToggleVerticalAlignTop}
         onToggleVerticalAlignCenter={onToggleVerticalAlignCenter}
         onToggleVerticalAlignBottom={onToggleVerticalAlignBottom}
-        onCopyStyles={function (): void {
-          throw new Error("Function not implemented.");
-        }}
-        onTextColorPicked={function (_hex: string): void {
-          throw new Error("Function not implemented.");
-        }}
-        onFillColorPicked={function (_hex: string): void {
-          throw new Error("Function not implemented.");
-        }}
-        onNumberFormatPicked={function (_numberFmt: string): void {
-          throw new Error("Function not implemented.");
-        }}
+        onCopyStyles={onCopyStyles}
+        onTextColorPicked={onTextColorPicked}
+        onFillColorPicked={onFillColorPicked}
+        onNumberFormatPicked={onNumberFormatPicked}
         onBorderChanged={function (_border: BorderOptions): void {
           throw new Error("Function not implemented.");
         }}
-        fillColor={""}
-        fontColor={""}
-        bold={false}
-        underline={false}
-        italic={false}
-        strike={false}
-        horizontalAlign={""}
-        verticalAlign="center"
+        fillColor={style.fill.fg_color || "#FFF"}
+        fontColor={style.font.color}
+        bold={style.font.b}
+        underline={style.font.u}
+        italic={style.font.i}
+        strike={style.font.strike}
+        horizontalAlign={style.alignment ?  style.alignment.horizontal : "general"}
+        verticalAlign={style.alignment ? style.alignment.vertical: "center"}
         canEdit={true}
         numFmt={""}
       />
@@ -383,7 +429,7 @@ const Workbook = (props: { model: Model; workbookState: WorkbookState }) => {
           console.log(name);
           throw new Error("Function not implemented.");
         }}
-        conSheetDeleted={function (): void {
+        onSheetDeleted={function (): void {
           throw new Error("Function not implemented.");
         }}
       />

@@ -116,7 +116,8 @@ function Worksheet(props: {
       event.preventDefault();
       event.stopPropagation();
       workbookState.selectCell(cell);
-      worksheetCanvas.current?.renderSheet();
+      // worksheetCanvas.current?.renderSheet();
+      refresh();
     },
     onAreaSelecting: (cell: Cell) => {
       const canvas = worksheetCanvas.current;

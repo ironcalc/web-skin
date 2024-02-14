@@ -60,17 +60,21 @@ interface CellStyleBorder {
   diagonal: BorderItem;
 }
 
+export type VerticalAlignment = "bottom" | "center" | "distributed" | "justify" | "top";
+
+export type HorizontalAlignment =
+  | "left"
+  | "center"
+  | "right"
+  | "general"
+  | "centerContinuous"
+  | "distributed"
+  | "fill"
+  | "justify";
+
 interface Alignment {
-  horizontal:
-    | "left"
-    | "center"
-    | "right"
-    | "general"
-    | "centerContinuous"
-    | "distributed"
-    | "fill"
-    | "justify";
-  vertical: "bottom" | "center" | "distributed" | "justify" | "top";
+  horizontal: HorizontalAlignment;
+  vertical: VerticalAlignment;
   wrap_text: boolean;
 }
 

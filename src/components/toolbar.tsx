@@ -27,10 +27,8 @@ import { NumberFormats, decreaseDecimalPlaces, increaseDecimalPlaces } from './f
 import FormatMenu from './formatMenu';
 import { styled } from '@mui/material/styles';
 import { theme } from '../theme';
-import { BorderOptions } from '../model/types';
+import { BorderOptions, HorizontalAlignment, VerticalAlignment } from '../model/types';
 
-
-type VerticalAlign = "top" | "center" | "bottom";
 
 type ToolbarProperties = {
   canUndo: boolean;
@@ -58,15 +56,13 @@ type ToolbarProperties = {
   underline: boolean;
   italic: boolean;
   strike: boolean;
-  horizontalAlign: string;
-  verticalAlign: VerticalAlign;
+  horizontalAlign: HorizontalAlignment;
+  verticalAlign: VerticalAlignment;
   canEdit: boolean;
   numFmt: string;
 };
 
 function Toolbar(properties: ToolbarProperties) {
-  const [fontColor, _setFontColor] = useState(properties.fontColor);
-  const [fillColor, _setFillColor] = useState(properties.fillColor);
   const [fontColorPickerOpen, setFontColorPickerOpen] = useState(false);
   const [fillColorPickerOpen, setFillColorPickerOpen] = useState(false);
   const [borderPickerOpen, setBorderPickerOpen] = useState(false);
@@ -81,7 +77,7 @@ function Toolbar(properties: ToolbarProperties) {
 
   return (
     <ToolbarContainer>
-      <Button
+      <StyledButton
         type="button"
         $pressed={false}
         onClick={properties.onUndo}
@@ -89,8 +85,8 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.undo')}
       >
         <Undo2 />
-      </Button>
-      <Button
+      </StyledButton>
+      <StyledButton
         type="button"
         $pressed={false}
         onClick={properties.onRedo}
@@ -98,18 +94,18 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.redo')}
       >
         <Redo2 />
-      </Button>
+      </StyledButton>
       <Divider />
-      <Button
+      <StyledButton
         type="button"
         $pressed={false}
         onClick={properties.onCopyStyles}
         title={t('toolbar.copy_styles')}
       >
         <Paintbrush2 />
-      </Button>
+      </StyledButton>
       <Divider />
-      <Button
+      <StyledButton
         type="button"
         $pressed={false}
         onClick={(): void => {
@@ -119,8 +115,8 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.euro')}
       >
         <Euro />
-      </Button>
-      <Button
+      </StyledButton>
+      <StyledButton
         type="button"
         $pressed={false}
         onClick={(): void => {
@@ -130,8 +126,8 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.percentage')}
       >
         <Percent />
-      </Button>
-      <Button
+      </StyledButton>
+      <StyledButton
         type="button"
         $pressed={false}
         onClick={(): void => {
@@ -141,8 +137,8 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.decimal_places_decrease')}
       >
         <DecimalPlacesDecreaseIcon />
-      </Button>
-      <Button
+      </StyledButton>
+      <StyledButton
         type="button"
         $pressed={false}
         onClick={(): void => {
@@ -152,7 +148,7 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.decimal_places_increase')}
       >
         <DecimalPlacesIncreaseIcon />
-      </Button>
+      </StyledButton>
       <FormatMenu
         numFmt={properties.numFmt}
         onChange={(numberFmt): void => {
@@ -164,7 +160,7 @@ function Toolbar(properties: ToolbarProperties) {
           vertical: 'bottom',
         }}
       >
-        <Button
+        <StyledButton
           type="button"
           $pressed={false}
           disabled={!canEdit}
@@ -177,10 +173,10 @@ function Toolbar(properties: ToolbarProperties) {
         >
           {'123'}
           <ChevronDown />
-        </Button>
+        </StyledButton>
       </FormatMenu>
       <Divider />
-      <Button
+      <StyledButton
         type="button"
         $pressed={properties.bold}
         onClick={properties.onToggleBold}
@@ -188,8 +184,8 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.bold')}
       >
         <Bold />
-      </Button>
-      <Button
+      </StyledButton>
+      <StyledButton
         type="button"
         $pressed={properties.italic}
         onClick={properties.onToggleItalic}
@@ -197,8 +193,8 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.italic')}
       >
         <Italic />
-      </Button>
-      <Button
+      </StyledButton>
+      <StyledButton
         type="button"
         $pressed={properties.underline}
         onClick={properties.onToggleUnderline}
@@ -206,8 +202,8 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.underline')}
       >
         <Underline />
-      </Button>
-      <Button
+      </StyledButton>
+      <StyledButton
         type="button"
         $pressed={properties.strike}
         onClick={properties.onToggleStrike}
@@ -215,32 +211,32 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.strike_trough')}
       >
         <Strikethrough />
-      </Button>
+      </StyledButton>
       <Divider />
-      <Button
+      <StyledButton
         type="button"
         $pressed={false}
         disabled={!canEdit}
         title={t('toolbar.font_color')}
         ref={fontColorButton}
-        $underlinedColor={fontColor}
+        $underlinedColor={properties.fontColor}
         onClick={() => setFontColorPickerOpen(true)}
       >
         <Type />
-      </Button>
-      <Button
+      </StyledButton>
+      <StyledButton
         type="button"
         $pressed={false}
         disabled={!canEdit}
         title={t('toolbar.fill_color')}
         ref={fillColorButton}
-        $underlinedColor={fillColor}
+        $underlinedColor={properties.fillColor}
         onClick={() => setFillColorPickerOpen(true)}
       >
         <PaintBucket />
-      </Button>
+      </StyledButton>
       <Divider />
-      <Button
+      <StyledButton
         type="button"
         $pressed={properties.horizontalAlign === 'left'}
         onClick={properties.onToggleHorizontalAlignLeft}
@@ -248,8 +244,8 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.align_left')}
       >
         <AlignLeft />
-      </Button>
-      <Button
+      </StyledButton>
+      <StyledButton
         type="button"
         $pressed={properties.horizontalAlign === 'center'}
         onClick={properties.onToggleHorizontalAlignCenter}
@@ -257,8 +253,8 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.align_center')}
       >
         <AlignCenter />
-      </Button>
-      <Button
+      </StyledButton>
+      <StyledButton
         type="button"
         $pressed={properties.horizontalAlign === 'right'}
         onClick={properties.onToggleHorizontalAlignRight}
@@ -266,8 +262,8 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.align_right')}
       >
         <AlignRight />
-      </Button>
-      <Button
+      </StyledButton>
+      <StyledButton
         type="button"
         $pressed={properties.verticalAlign === 'top'}
         onClick={properties.onToggleVerticalAlignTop}
@@ -275,8 +271,8 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.vertical_align_top')}
       >
         <ArrowUpToLine />
-      </Button>
-      <Button
+      </StyledButton>
+      <StyledButton
         type="button"
         $pressed={properties.verticalAlign === 'center'}
         onClick={properties.onToggleVerticalAlignCenter}
@@ -284,8 +280,8 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.vertical_align_center')}
       >
         <ArrowMiddleFromLine />
-      </Button>
-      <Button
+      </StyledButton>
+      <StyledButton
         type="button"
         $pressed={properties.verticalAlign === 'bottom'}
         onClick={properties.onToggleVerticalAlignBottom}
@@ -293,9 +289,9 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.vertical_align_bottom')}
       >
         <ArrowDownToLine />
-      </Button>
+      </StyledButton>
       <Divider />
-      <Button
+      <StyledButton
         type="button"
         $pressed={false}
         onClick={() => setBorderPickerOpen(true)}
@@ -304,9 +300,9 @@ function Toolbar(properties: ToolbarProperties) {
         title={t('toolbar.borders')}
       >
         <Grid2X2 />
-      </Button>
+      </StyledButton>
       <ColorPicker
-        color={fontColor}
+        color={properties.fontColor}
         onChange={(color): void => {
           properties.onTextColorPicked(color);
           setFontColorPickerOpen(false);
@@ -315,7 +311,7 @@ function Toolbar(properties: ToolbarProperties) {
         open={fontColorPickerOpen}
       />
       <ColorPicker
-        color={fillColor}
+        color={properties.fillColor}
         onChange={(color): void => {
           properties.onFillColorPicked(color);
           setFillColorPickerOpen(false);
@@ -339,7 +335,6 @@ const toolbarHeight = 40;
 const ToolbarContainer = styled('div')`
   display: flex;
   flex-shrink: 0;
-  flex-grow: row;
   align-items: center;
   background: ${({ theme }) => theme.palette.background.paper};
   height: ${toolbarHeight}px;
@@ -347,10 +342,11 @@ const ToolbarContainer = styled('div')`
   border-bottom: 1px solid ${({ }) => theme.palette.grey['600']};
   font-family: Inter;
   border-radius: 4px 4px 0px 0px;
+  overflow-x: auto;
 `;
 
 type TypeButtonProperties = { $pressed: boolean; $underlinedColor?: string };
-const Button = styled('button')<TypeButtonProperties>(
+export const StyledButton = styled('button')<TypeButtonProperties>(
   ({ disabled, $pressed, $underlinedColor }) => {
     let result: Record<string, any> = {
     width: '24px',
